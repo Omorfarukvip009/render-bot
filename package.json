@@ -1,16 +1,19 @@
 {
-  "name": "whatsapp-checker-bot",
+  "name": "whatsapp-number-bot",
   "version": "1.0.0",
-  "description": "Telegram bot + website logs (Render deploy)",
+  "description": "Telegram bot to check WhatsApp numbers with proxy support and web dashboard",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "start": "node index.js"
   },
+  "author": "MD OMOR FARUK",
+  "license": "MIT",
   "dependencies": {
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
     "node-fetch": "^3.3.2",
-    "telegraf": "^4.16.3"
+    "socks-proxy-agent": "^6.0.0",
+    "telegraf": "^4.12.2"
   }
 }
