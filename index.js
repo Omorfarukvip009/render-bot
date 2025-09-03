@@ -10,6 +10,7 @@ dotenv.config();
 const BOT_TOKEN = process.env.BOT_TOKEN; // From .env or Render environment
 const bot = new Telegraf(BOT_TOKEN);
 
+const ALLOWED_USER_ID = 5526990470; // ✅ Only this user can use bot
 const BATCH_SIZE = 10;
 const MAX_NUMBERS = 100;
 const API_URL = "https://umnico.com/api/tools/checker?phone=";
@@ -25,6 +26,16 @@ function addLog(message) {
   logs.push(`[${new Date().toLocaleTimeString()}] ${message}`);
   if (logs.length > 200) logs.shift(); // keep last 200 logs
 }
+
+// ================= PERMISSION CHECK =================
+bot.use((ctx, next) => {
+  if (ctx.from && ctx.from.id !== ALLOWED_USER_ID) {
+    ctx.reply("❌ You don't have permission to use this bot.");
+    addLog(`⛔ Unauthorized access attempt by ${ctx.from.username || ctx.from.id}`);
+    return;
+  }
+  return next();
+});
 
 // ================= BOT COMMANDS =================
 bot.start((ctx) => {
@@ -251,4 +262,3 @@ app.get("/logs", (req, res) => {
 app.listen(PORT, () => {
   addLog(`🌍 Web server running on port ${PORT}`);
 });
-    
