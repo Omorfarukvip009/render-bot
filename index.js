@@ -106,6 +106,8 @@ app.get("/", (req, res) => {
     <html>
       <head>
         <title>Bot Logs</title>
+        <!-- MOBILE VIEWPORT FIX -->
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
         <style>
           body {
             margin: 0;
@@ -152,18 +154,18 @@ app.get("/", (req, res) => {
           }
 
           @keyframes fadeIn {
-            from {opacity: 0;}
-            to {opacity: 1;}
+            from {opacity:0;}
+            to {opacity:1;}
           }
 
           .cursor::after {
-            content: "_";
+            content:"_";
             animation: blink 1s step-end infinite;
           }
 
           @keyframes blink {
-            0%, 50% { opacity: 1; }
-            51%, 100% { opacity: 0; }
+            0%,50%{opacity:1;}
+            51%,100%{opacity:0;}
           }
         </style>
       </head>
@@ -249,4 +251,3 @@ app.get("/logs", (req, res) => {
 app.listen(PORT, () => {
   addLog(`🌍 Web server running on port ${PORT}`);
 });
-    
