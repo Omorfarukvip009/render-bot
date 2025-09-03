@@ -3,6 +3,7 @@ import { Telegraf } from "telegraf";
 import fetch from "node-fetch";
 import express from "express";
 import dotenv from "dotenv";
+import { SocksProxyAgent } from "socks-proxy-agent";
 
 dotenv.config();
 
@@ -15,6 +16,21 @@ const BATCH_SIZE = 10;
 const MAX_NUMBERS = 100;
 const API_URL = "https://umnico.com/api/tools/checker?phone=";
 
+// Proxy config
+const PROXY = {
+  ip: "93.190.143.48",
+  port: "9999",
+  username: "bnsuqmw2t4-mobile-country-IR-state-110791-city-112931-asn-31549-hold-query",
+  password: "5rUo8jIF2rC5uTCD"
+};
+let checkedCount = 0; // track numbers for batch rotation
+
+function getProxyAgent() {
+  const proxyUrl = `socks5://${PROXY.username}:${PROXY.password}@${PROXY.ip}:${PROXY.port}`;
+  return new SocksProxyAgent(proxyUrl);
+}
+
+// ================= EXPRESS APP =================
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -85,7 +101,8 @@ bot.on("text", async (ctx) => {
     const results = await Promise.all(
       batch.map(async (num) => {
         try {
-          const res = await fetch(`${API_URL}${encodeURIComponent(num)}`);
+          const agent = getProxyAgent();
+          const res = await fetch(`${API_URL}${encodeURIComponent(num)}`, { agent });
           const data = await res.json();
 
           if (!data.exists) {
@@ -95,9 +112,16 @@ bot.on("text", async (ctx) => {
             addLog(`❌ ${num} already used`);
             return null;
           }
-        } catch {
-          addLog(`⚠️ Error checking ${num}`);
+        } catch (err) {
+          addLog(`⚠️ Error checking ${num}: ${err.message}`);
           return null;
+        } finally {
+          checkedCount++;
+          // Reset proxy every 100 numbers
+          if (checkedCount >= 100) {
+            checkedCount = 0;
+            addLog("🔄 100 numbers checked. Proxy will reconnect for next batch.");
+          }
         }
       })
     );
@@ -124,7 +148,6 @@ app.get("/", (req, res) => {
     <html>
       <head>
         <title>Bot Logs</title>
-        <!-- MOBILE VIEWPORT FIX -->
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
         <style>
           body {
@@ -135,7 +158,6 @@ app.get("/", (req, res) => {
             overflow: hidden;
             color: #0f0;
           }
-
           #matrix {
             position: fixed;
             top: 0;
@@ -149,7 +171,6 @@ app.get("/", (req, res) => {
             overflow: hidden;
             white-space: nowrap;
           }
-
           #log-container {
             position: relative;
             z-index: 10;
@@ -162,35 +183,16 @@ app.get("/", (req, res) => {
             width: 90%;
             box-sizing: border-box;
           }
-
-          .line {
-            display: block;
-            opacity: 0;
-            animation: fadeIn 0.5s forwards;
-          }
-
-          @keyframes fadeIn {
-            from {opacity:0;}
-            to {opacity:1;}
-          }
-
-          .cursor::after {
-            content:"_";
-            animation: blink 1s step-end infinite;
-          }
-
-          @keyframes blink {
-            0%,50%{opacity:1;}
-            51%,100%{opacity:0;}
-          }
+          .line { display: block; opacity: 0; animation: fadeIn 0.5s forwards; }
+          @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
+          .cursor::after { content:"_"; animation: blink 1s step-end infinite; }
+          @keyframes blink { 0%,50%{opacity:1;} 51%,100%{opacity:0;} }
         </style>
       </head>
       <body>
         <canvas id="matrix"></canvas>
-
         <h2 style="text-align:center; color:#0f0;">🚀 Node.js Bot Logs</h2>
         <div id="log-container"></div>
-
         <script>
           const canvas = document.getElementById('matrix');
           const ctx = canvas.getContext('2d');
@@ -225,7 +227,6 @@ app.get("/", (req, res) => {
           });
 
           let displayedLogs = [];
-
           async function fetchLogs() {
             try {
               const response = await fetch("/logs");
@@ -242,9 +243,7 @@ app.get("/", (req, res) => {
               }
 
               displayedLogs = lines;
-            } catch (err) {
-              console.error("Error fetching logs:", err);
-            }
+            } catch (err) { console.error("Error fetching logs:", err); }
           }
 
           fetchLogs();
