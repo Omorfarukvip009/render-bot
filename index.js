@@ -7,7 +7,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // ================= CONFIG =================
-const BOT_TOKEN = process.env.BOT_TOKEN; // Taken from .env / Render environment
+const BOT_TOKEN = process.env.BOT_TOKEN; // From .env or Render environment
 const bot = new Telegraf(BOT_TOKEN);
 
 const BATCH_SIZE = 10;
@@ -107,19 +107,78 @@ app.get("/", (req, res) => {
       <head>
         <title>Bot Logs</title>
         <style>
-          body { font-family: monospace; background:#111; color:#0f0; padding:20px; }
-          pre { white-space: pre-line; }
-          button { background:#0f0; color:#111; padding:10px 20px; border:none; cursor:pointer; font-size:16px; }
-          button:hover { background:#9f9; }
+          body {
+            font-family: monospace;
+            background: linear-gradient(-45deg, #0f0, #00f, #0ff, #ff0);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: #0f0;
+            padding: 20px;
+          }
+
+          @keyframes gradientBG {
+            0% {background-position: 0% 50%;}
+            50% {background-position: 100% 50%;}
+            100% {background-position: 0% 50%;}
+          }
+
+          #log-container {
+            white-space: pre-line;
+            line-height: 1.4;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid #0f0;
+            padding: 10px;
+            animation: flicker 1.5s infinite alternate;
+          }
+
+          @keyframes flicker {
+            0% {opacity: 0.9;}
+            50% {opacity: 1;}
+            100% {opacity: 0.95;}
+          }
+
+          .fade-in {
+            animation: fadeIn 1s ease-in-out;
+          }
+
+          @keyframes fadeIn {
+            from {opacity: 0;}
+            to {opacity: 1;}
+          }
         </style>
       </head>
       <body>
         <h2>🚀 Node.js Bot Logs</h2>
-        <button onclick="location.reload()">🔄 Refresh</button>
-        <pre>${logs.join("\n")}</pre>
+        <div id="log-container" class="fade-in"></div>
+
+        <script>
+          async function fetchLogs() {
+            try {
+              const response = await fetch("/logs");
+              const data = await response.text();
+              const container = document.getElementById("log-container");
+              container.innerHTML = data;
+              container.scrollTop = container.scrollHeight; // auto scroll
+            } catch (err) {
+              console.error("Error fetching logs:", err);
+            }
+          }
+
+          // Initial fetch
+          fetchLogs();
+
+          // Auto-refresh every 2 seconds
+          setInterval(fetchLogs, 2000);
+        </script>
       </body>
     </html>
   `);
+});
+
+// ================= LOGS ENDPOINT =================
+app.get("/logs", (req, res) => {
+  res.send(logs.join("\n"));
 });
 
 // ================= START WEB SERVER =================
