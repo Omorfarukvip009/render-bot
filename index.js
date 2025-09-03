@@ -106,34 +106,34 @@ app.get("/", (req, res) => {
     <html>
       <head>
         <title>Bot Logs</title>
+        <!-- MOBILE VIEWPORT FIX -->
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
         <style>
           body {
             margin: 0;
             padding: 0;
             font-family: monospace;
-            color: #0f0;
+            background: #000;
             overflow: hidden;
+            color: #0f0;
           }
 
-          /* ScreenPal iframe background */
-          #bg-video-container {
+          /* Matrix-style falling code background */
+          #matrix {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             z-index: -1;
+            font-family: monospace;
+            font-size: 16px;
+            color: #0f0;
             overflow: hidden;
+            white-space: nowrap;
           }
 
-          #bg-video-container iframe {
-            width: 100%;
-            height: 100%;
-            border: 0;
-          }
-
-          /* Logs overlay */
+          /* Logs container overlay */
           #log-container {
             position: relative;
             z-index: 10;
@@ -153,28 +153,64 @@ app.get("/", (req, res) => {
             animation: fadeIn 0.5s forwards;
           }
 
-          @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
+          @keyframes fadeIn {
+            from {opacity:0;}
+            to {opacity:1;}
+          }
 
           .cursor::after {
-            content: "_";
+            content:"_";
             animation: blink 1s step-end infinite;
           }
 
-          @keyframes blink { 0%,50%{opacity:1;}51%,100%{opacity:0;} }
+          @keyframes blink {
+            0%,50%{opacity:1;}
+            51%,100%{opacity:0;}
+          }
         </style>
       </head>
       <body>
-        <!-- ScreenPal Video Background -->
-        <div id="bg-video-container">
-          <iframe src="https://go.screenpal.com/player/cTQenonoQ0P?width=100%&height=100%&ff=1&title=0" allowfullscreen></iframe>
-        </div>
+        <!-- Matrix code background -->
+        <canvas id="matrix"></canvas>
 
-        <!-- Logs overlay -->
-        <h2 style="text-align:center;">🚀 Node.js Bot Logs</h2>
+        <h2 style="text-align:center; color:#0f0;">🚀 Node.js Bot Logs</h2>
         <div id="log-container"></div>
 
         <script>
-          // Fetch logs every 2 seconds
+          // ========== Matrix Code Animation ==========
+          const canvas = document.getElementById('matrix');
+          const ctx = canvas.getContext('2d');
+          let width = canvas.width = window.innerWidth;
+          let height = canvas.height = window.innerHeight;
+
+          const letters = "01ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".split("");
+          const fontSize = 16;
+          const columns = Math.floor(width / fontSize);
+          const drops = Array(columns).fill(0);
+
+          function drawMatrix() {
+            ctx.fillStyle = "rgba(0,0,0,0.05)";
+            ctx.fillRect(0, 0, width, height);
+            ctx.fillStyle = "#0f0";
+            ctx.font = fontSize + "px monospace";
+
+            for (let i = 0; i < drops.length; i++) {
+              const text = letters[Math.floor(Math.random() * letters.length)];
+              ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+              drops[i]++;
+              if (drops[i] * fontSize > height && Math.random() > 0.975) {
+                drops[i] = 0;
+              }
+            }
+          }
+
+          setInterval(drawMatrix, 50);
+          window.addEventListener("resize", () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+          });
+
+          // ========== Terminal Logs ==========
           let displayedLogs = [];
 
           async function fetchLogs() {
@@ -215,3 +251,4 @@ app.get("/logs", (req, res) => {
 app.listen(PORT, () => {
   addLog(`🌍 Web server running on port ${PORT}`);
 });
+    
