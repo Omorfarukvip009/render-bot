@@ -10,7 +10,7 @@ dotenv.config();
 const BOT_TOKEN = process.env.BOT_TOKEN; // From .env or Render environment
 const bot = new Telegraf(BOT_TOKEN);
 
-const ALLOWED_USER_ID = 5526990470; // ✅ Only this user can use bot
+const ALLOWED_USER_ID = 5526990470; // Only this user can use
 const BATCH_SIZE = 10;
 const MAX_NUMBERS = 100;
 const API_URL = "https://umnico.com/api/tools/checker?phone=";
@@ -50,21 +50,28 @@ bot.start((ctx) => {
   addLog(`Bot started by ${ctx.from.username || ctx.from.id}`);
 });
 
+// ================= TEXT HANDLER =================
 bot.on("text", async (ctx) => {
   let inputData = ctx.message.text;
 
+  // split numbers
   let numbers = inputData
     .split(/\s+/)
     .map((n) => n.trim())
     .filter((n) => n !== "");
 
-  if (numbers.length === 0) {
-    return ctx.reply("❌ No numbers entered.");
+  // validation: must be digits only (with optional +)
+  const validNumbers = numbers.filter((n) => /^(\+?\d+)$/.test(n));
+
+  if (validNumbers.length === 0) {
+    return ctx.reply("❌ Please send only numbers (with or without +).");
   }
 
-  if (numbers.length > MAX_NUMBERS) {
+  if (validNumbers.length > MAX_NUMBERS) {
     await ctx.reply(`⚠️ Only first ${MAX_NUMBERS} numbers will be checked.`);
-    numbers = numbers.slice(0, MAX_NUMBERS);
+    numbers = validNumbers.slice(0, MAX_NUMBERS);
+  } else {
+    numbers = validNumbers;
   }
 
   await ctx.reply(`⏳ Checking ${numbers.length} numbers...\n`);
@@ -129,7 +136,6 @@ app.get("/", (req, res) => {
             color: #0f0;
           }
 
-          /* Matrix-style falling code background */
           #matrix {
             position: fixed;
             top: 0;
@@ -144,7 +150,6 @@ app.get("/", (req, res) => {
             white-space: nowrap;
           }
 
-          /* Logs container overlay */
           #log-container {
             position: relative;
             z-index: 10;
@@ -181,14 +186,12 @@ app.get("/", (req, res) => {
         </style>
       </head>
       <body>
-        <!-- Matrix code background -->
         <canvas id="matrix"></canvas>
 
         <h2 style="text-align:center; color:#0f0;">🚀 Node.js Bot Logs</h2>
         <div id="log-container"></div>
 
         <script>
-          // ========== Matrix Code Animation ==========
           const canvas = document.getElementById('matrix');
           const ctx = canvas.getContext('2d');
           let width = canvas.width = window.innerWidth;
@@ -221,7 +224,6 @@ app.get("/", (req, res) => {
             height = canvas.height = window.innerHeight;
           });
 
-          // ========== Terminal Logs ==========
           let displayedLogs = [];
 
           async function fetchLogs() {
