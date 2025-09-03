@@ -113,17 +113,22 @@ app.get("/", (req, res) => {
             font-family: monospace;
             background: #000;
             overflow: hidden;
+            color: #0f0;
           }
 
-          /* Background video */
-          #bg-video {
+          /* Matrix-style falling code background */
+          #matrix {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover;
             z-index: -1;
+            font-family: monospace;
+            font-size: 16px;
+            color: #0f0;
+            overflow: hidden;
+            white-space: nowrap;
           }
 
           /* Logs container overlay */
@@ -135,8 +140,7 @@ app.get("/", (req, res) => {
             margin: 20px auto;
             padding: 20px;
             border: 2px solid #0f0;
-            background: rgba(0, 0, 0, 0.6); /* semi-transparent overlay */
-            color: #0f0;
+            background: rgba(0,0,0,0.6);
             width: 90%;
             box-sizing: border-box;
           }
@@ -164,16 +168,47 @@ app.get("/", (req, res) => {
         </style>
       </head>
       <body>
-        <!-- Background video -->
-        <video autoplay muted loop id="bg-video">
-          <source src="https://cdn.pixabay.com/vimeo/589206416/AI_Cyberpunk_Background.mp4" type="video/mp4">
-          Your browser does not support the video tag.
-        </video>
+        <!-- Matrix code background -->
+        <canvas id="matrix"></canvas>
 
         <h2 style="text-align:center; color:#0f0;">🚀 Node.js Bot Logs</h2>
         <div id="log-container"></div>
 
         <script>
+          // ========== Matrix Code Animation ==========
+          const canvas = document.getElementById('matrix');
+          const ctx = canvas.getContext('2d');
+          let width = canvas.width = window.innerWidth;
+          let height = canvas.height = window.innerHeight;
+
+          const letters = "01ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".split("");
+          const fontSize = 16;
+          const columns = Math.floor(width / fontSize);
+          const drops = Array(columns).fill(0);
+
+          function drawMatrix() {
+            ctx.fillStyle = "rgba(0,0,0,0.05)";
+            ctx.fillRect(0, 0, width, height);
+            ctx.fillStyle = "#0f0";
+            ctx.font = fontSize + "px monospace";
+
+            for (let i = 0; i < drops.length; i++) {
+              const text = letters[Math.floor(Math.random() * letters.length)];
+              ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+              drops[i]++;
+              if (drops[i] * fontSize > height && Math.random() > 0.975) {
+                drops[i] = 0;
+              }
+            }
+          }
+
+          setInterval(drawMatrix, 50);
+          window.addEventListener("resize", () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+          });
+
+          // ========== Terminal Logs ==========
           let displayedLogs = [];
 
           async function fetchLogs() {
@@ -214,3 +249,4 @@ app.get("/logs", (req, res) => {
 app.listen(PORT, () => {
   addLog(`🌍 Web server running on port ${PORT}`);
 });
+    
