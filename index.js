@@ -100,7 +100,7 @@ bot.on("text", async (ctx) => {
 bot.launch();
 addLog("🤖 Bot launched successfully!");
 
-// ================= WEBSITE =================
+// ================= WEBSITE DASHBOARD =================
 app.get("/", (req, res) => {
   res.send(`
     <html>
@@ -109,17 +109,9 @@ app.get("/", (req, res) => {
         <style>
           body {
             font-family: monospace;
-            background: linear-gradient(-45deg, #0f0, #00f, #0ff, #ff0);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
+            background: #111;
             color: #0f0;
             padding: 20px;
-          }
-
-          @keyframes gradientBG {
-            0% {background-position: 0% 50%;}
-            50% {background-position: 100% 50%;}
-            100% {background-position: 0% 50%;}
           }
 
           #log-container {
@@ -129,46 +121,59 @@ app.get("/", (req, res) => {
             overflow-y: auto;
             border: 1px solid #0f0;
             padding: 10px;
-            animation: flicker 1.5s infinite alternate;
           }
 
-          @keyframes flicker {
-            0% {opacity: 0.9;}
-            50% {opacity: 1;}
-            100% {opacity: 0.95;}
-          }
-
-          .fade-in {
-            animation: fadeIn 1s ease-in-out;
+          .line {
+            display: block;
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
           }
 
           @keyframes fadeIn {
             from {opacity: 0;}
             to {opacity: 1;}
           }
+
+          .cursor::after {
+            content: "_";
+            animation: blink 1s step-end infinite;
+          }
+
+          @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+          }
         </style>
       </head>
       <body>
         <h2>🚀 Node.js Bot Logs</h2>
-        <div id="log-container" class="fade-in"></div>
+        <div id="log-container"></div>
 
         <script>
+          let displayedLogs = [];
+
           async function fetchLogs() {
             try {
               const response = await fetch("/logs");
               const data = await response.text();
+              const lines = data.split('\\n');
               const container = document.getElementById("log-container");
-              container.innerHTML = data;
-              container.scrollTop = container.scrollHeight; // auto scroll
+
+              for (let i = displayedLogs.length; i < lines.length; i++) {
+                const line = document.createElement('span');
+                line.textContent = lines[i];
+                line.className = 'line cursor';
+                container.appendChild(line);
+                container.scrollTop = container.scrollHeight;
+              }
+
+              displayedLogs = lines;
             } catch (err) {
               console.error("Error fetching logs:", err);
             }
           }
 
-          // Initial fetch
           fetchLogs();
-
-          // Auto-refresh every 2 seconds
           setInterval(fetchLogs, 2000);
         </script>
       </body>
