@@ -108,19 +108,37 @@ app.get("/", (req, res) => {
         <title>Bot Logs</title>
         <style>
           body {
+            margin: 0;
+            padding: 0;
             font-family: monospace;
-            background: #111;
-            color: #0f0;
-            padding: 20px;
+            background: #000;
+            overflow: hidden;
           }
 
+          /* Background video */
+          #bg-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+          }
+
+          /* Logs container overlay */
           #log-container {
-            white-space: pre-line;
-            line-height: 1.4;
-            max-height: 80vh;
+            position: relative;
+            z-index: 10;
+            max-height: 90vh;
             overflow-y: auto;
-            border: 1px solid #0f0;
-            padding: 10px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 2px solid #0f0;
+            background: rgba(0, 0, 0, 0.6); /* semi-transparent overlay */
+            color: #0f0;
+            width: 90%;
+            box-sizing: border-box;
           }
 
           .line {
@@ -146,7 +164,13 @@ app.get("/", (req, res) => {
         </style>
       </head>
       <body>
-        <h2>🚀 Node.js Bot Logs</h2>
+        <!-- Background video -->
+        <video autoplay muted loop id="bg-video">
+          <source src="https://cdn.pixabay.com/vimeo/589206416/AI_Cyberpunk_Background.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+
+        <h2 style="text-align:center; color:#0f0;">🚀 Node.js Bot Logs</h2>
         <div id="log-container"></div>
 
         <script>
