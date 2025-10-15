@@ -86,14 +86,18 @@ bot.on("text", async (ctx) => {
       batch.map(async (num) => {
         try {
           const res = await fetch(`${API_URL}${encodeURIComponent(num)}`);
-          const data = await res.json();
+          const data = await res.text(); // read API response as text
 
-          if (data.exists) {
+          // Decide status based on API response
+          if (data.toLowerCase().includes("exists")) {
             addLog(`❌ ${num} already used`);
             return `❌ ${num} (Registered)`;
-          } else {
+          } else if (data.toLowerCase().includes("not exists") || data.toLowerCase().includes("fresh")) {
             addLog(`✅ ${num} is FRESH`);
             return `✅ ${num} (Not Registered)`;
+          } else {
+            addLog(`⚠️ ${num} unknown response: ${data}`);
+            return `⚠️ ${num} (Unknown Response)`;
           }
         } catch (err) {
           addLog(`⚠️ Error checking ${num}: ${err.message}`);
@@ -105,7 +109,12 @@ bot.on("text", async (ctx) => {
     resultsAll.push(...results);
   }
 
-  await ctx.reply(resultsAll.join("\n"));
+  // Send results in batches if too long
+  const chunkSize = 20;
+  for (let i = 0; i < resultsAll.length; i += chunkSize) {
+    await ctx.reply(resultsAll.slice(i, i + chunkSize).join("\n"));
+  }
+
   await ctx.reply("👨‍💻 Bot Made by MD OMOR FARUK");
 });
 
@@ -234,3 +243,4 @@ app.get("/logs", (req, res) => {
 app.listen(PORT, () => {
   addLog(`🌍 Web server running on port ${PORT}`);
 });
+      
